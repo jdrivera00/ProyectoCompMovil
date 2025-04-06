@@ -1,0 +1,59 @@
+{
+    "usuarios": [
+      {
+        "id": "clienteID1",
+        "tipo": "cliente",
+        "nombre": "",
+        "correo": "",
+        "tokens": 0,
+        "notificaciones": []
+      },
+      {
+        "id": "adminID1",
+        "tipo": "administrador",
+        "nombre": "",
+        "correo": "",
+        "restauranteID": ""
+      },
+      {
+        "id": "superadminID1",
+        "tipo": "superadmin",
+        "nombre": "",
+        "correo": ""
+      }
+    ],
+    "restaurantes": [
+      {
+        "id": "restauranteID1",
+        "nombre": "",
+        "descripcion": "",
+        "imagen": "",
+        "productos": [
+          {
+            "id": "productoID1",
+            "nombre": "",
+            "precio": 0,
+            "descripcion": "",
+            "imagen": ""
+          }
+        ]
+      }
+    ],
+    "pedidos": [
+      {
+        "id": "pedidoID1",
+        "clienteID": "",
+        "restauranteID": "",
+        "productos": [
+          {
+            "productoID": "",
+            "cantidad": 1
+          }
+        ],
+        "estado": "listo",
+        "total": 0,
+        "fecha": ""
+      }
+    ]
+  }
+  
