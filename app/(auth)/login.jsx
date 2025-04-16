@@ -11,8 +11,9 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { auth } from "../../config/firebaseConfig";
+import { auth, db } from "../../config/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -26,8 +27,28 @@ export default function LoginScreen() {
     }
 
     try {
+      // Autenticación con Firebase
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/(tabs)/");
+
+      // Consultar Firestore para verificar el rol
+      const q = query(collection(db, "usuarios"), where("correo", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+
+        // Verificar el rol del usuario
+        if (userData.rol === "admin") {
+          router.replace("/admin/AdminRestauranteView");
+        } else if (userData.rol === "cliente") {
+          router.replace("/(tabs)/");
+        } else {
+          Alert.alert("Error", "Rol de usuario no reconocido.");
+        }
+      } else {
+        Alert.alert("Error", "Usuario no encontrado en la base de datos.");
+      }
     } catch (error) {
       Alert.alert("Error de autenticación", error.message);
     }
@@ -151,4 +172,3 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
- 
