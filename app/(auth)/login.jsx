@@ -43,6 +43,8 @@ export default function LoginScreen() {
           router.replace("/admin/AdminRestauranteView");
         } else if (userData.rol === "cliente") {
           router.replace("/(tabs)/");
+        } else if (userData.rol === "superadmin") {
+          router.replace("/superadmin/SuperAdminView");
         } else {
           Alert.alert("Error", "Rol de usuario no reconocido.");
         }
