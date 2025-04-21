@@ -7,7 +7,7 @@ import { db } from '../../config/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// ✅ Interfaz para el tipo de restaurante
+//  Interfaz para el tipo de restaurante
 interface Restaurante {
   id: string;
   nombre: string;
@@ -15,7 +15,7 @@ interface Restaurante {
 }
 
 export default function ClienteHome() {
-  // ✅ Tipamos el estado
+  //  Tipamos el estado
   const [restaurantes, setRestaurantes] = useState<Restaurante[]>([]);
   const router = useRouter();
 
