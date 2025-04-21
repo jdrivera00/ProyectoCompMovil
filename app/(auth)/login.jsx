@@ -42,7 +42,7 @@ export default function LoginScreen() {
         if (userData.rol === "admin") {
           router.replace("/admin/AdminRestauranteView");
         } else if (userData.rol === "cliente") {
-          router.replace("/(tabs)/");
+          router.replace("/cliente/ClienteHome");
         } else if (userData.rol === "superadmin") {
           router.replace("/superadmin/SuperAdminView");
         } else {
