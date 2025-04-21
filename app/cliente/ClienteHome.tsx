@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 50, // Ajusta el padding superior para el botón de menú
+    paddingTop: 50, // Ajusta el padding superior para el botón de menú!!
   },
   menuButton: {
     position: 'absolute',
