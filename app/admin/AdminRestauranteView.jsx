@@ -1,123 +1,114 @@
-import React, { useState } from "react";
-import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router"; // Cambiado a useRouter de expo-router
 
 export default function AdminRestauranteView() {
-  const [productos, setProductos] = useState([]);
-  const [nombre, setNombre] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+  // Usamos el router de Expo
+  const router = useRouter();
+  
+  // El nombre del restaurante podría venir de una prop o estado
+  const nombreRestaurante = "D'Café";
 
-  const agregarProducto = () => {
-    if (nombre.trim() === "") return;
-    setProductos([...productos, nombre]);
-    setNombre("");
+  const handleAñadir = () => {
+    // Implementar lógica para añadir
+    console.log("Añadir nuevo elemento");
   };
 
-  const editarProducto = (index) => {
-    setNombre(productos[index]);
-    setEditIndex(index);
+  const handleEditar = () => {
+    // Implementar lógica para editar
+    console.log("Editar elemento");
   };
 
-  const guardarCambios = () => {
-    if (editIndex !== null) {
-      const nuevosProductos = [...productos];
-      nuevosProductos[editIndex] = nombre;
-      setProductos(nuevosProductos);
-      setEditIndex(null);
-      setNombre("");
+  const handleBorrar = () => {
+    // Implementar lógica para borrar
+    console.log("Borrar elemento");
+  };
+
+  const handleVisualizarMenu = () => {
+    // Aquí se podría navegar a la vista de visualización del menú cuando esté implementada
+    console.log("Visualizar menú");
+    // Por ejemplo: router.push("/menu/VisualizarMenu");
+  };
+
+  const handleVolverLogin = () => {
+    // Navegar de regreso a la pantalla de login usando Expo Router
+    try {
+      // Usar la misma ruta que se usa en el Login para navegar
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.error("Error navegando a Login:", error);
+      // Alternativa
+      router.replace("/");
     }
   };
 
-  const eliminarProducto = (index) => {
-    const nuevosProductos = productos.filter((_, i) => i !== index);
-    setProductos(nuevosProductos);
-  };
-
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Adm Restaurante</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Restaurantes USC</Text>
+      
+      <Text style={styles.welcomeText}>¡ Bienvenido {nombreRestaurante} !</Text>
+      
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleAñadir} style={styles.button}>
+          <Text style={styles.buttonText}>AÑADIR</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleEditar} style={styles.button}>
+          <Text style={styles.buttonText}>EDITAR</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleBorrar} style={styles.button}>
+          <Text style={styles.buttonText}>BORRAR</Text>
+        </TouchableOpacity>
 
-      <View style={styles.card}>
-        <TextInput
-          placeholder="Nombre del producto"
-          placeholderTextColor="#aaa"
-          value={nombre}
-          onChangeText={setNombre}
-          style={styles.input}
-        />
-
-        <TouchableOpacity
-          onPress={editIndex !== null ? guardarCambios : agregarProducto}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>
-            {editIndex !== null ? "Guardar Cambios" : "Agregar Producto"}
-          </Text>
+        <TouchableOpacity onPress={handleVisualizarMenu} style={styles.button}>
+          <Text style={styles.buttonText}>VISUALIZAR MENÚ</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleVolverLogin} style={[styles.button, styles.loginButton]}>
+          <Text style={styles.buttonText}>VOLVER AL LOGIN</Text>
         </TouchableOpacity>
       </View>
-
-      {productos.map((producto, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.productText}>{producto}</Text>
-
-          <TouchableOpacity onPress={() => editarProducto(index)} style={styles.button}>
-            <Text style={styles.buttonText}>Editar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => eliminarProducto(index)}
-            style={[styles.button, styles.deleteButton]}
-          >
-            <Text style={styles.buttonText}>Eliminar Producto</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
   title: {
-    fontSize: 28,
-    color: "#00BFFF",
+    fontSize: 24,
     fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: "#001f3f",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
+  welcomeText: {
+    fontSize: 18,
+    textAlign: "left",
+    marginBottom: 40,
+    marginTop: 20,
   },
-  input: {
-    backgroundColor: "#fff",
-    color: "#000",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
+  buttonContainer: {
+    gap: 16, // Espacio entre botones
   },
   button: {
-    backgroundColor: "#0074D9",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 5,
+    backgroundColor: "#3f51b5", // Color azul similar al de la imagen
+    padding: 14,
+    borderRadius: 4,
     alignItems: "center",
+    width: "100%",
   },
-  deleteButton: {
-    backgroundColor: "#FF4136",
+  loginButton: {
+    backgroundColor: "#FF0000", // Color rojo para el botón de volver al login
+    marginTop: 10,
   },
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontWeight: "bold",
-  },
-  productText: {
-    color: "#fff",
-    fontSize: 18,
-    marginBottom: 10,
-  },
+    fontSize: 16,
+  }
 });
