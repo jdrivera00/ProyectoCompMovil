@@ -1,8 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { initializeAuth, getAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1GTu2oVMWyem7zdAvdyi9S68dH4F3RzE",
@@ -15,10 +15,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ✅ Persistencia del login entre sesiones
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// ✅ Manejar plataforma: web usa getAuth, RN usa initializeAuth con persistencia
+let auth;
+
+if (Platform.OS === "web") {
+  auth = getAuth(app); // Web
+} else {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage), // React Native
+  });
+}
 
 const db = getFirestore(app);
 

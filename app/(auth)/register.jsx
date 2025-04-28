@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Pressable
+  Pressable,
+  Animated
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebaseConfig";
@@ -58,12 +59,12 @@ export default function RegisterScreen() {
 
       Alert.alert("Registro exitoso.", "Cuenta creada con éxito.", [
         {
-            text: "Aceptar",
-            onPress: () => router.replace("/(auth)/login"),
+          text: "Aceptar",
+          onPress: () => router.replace("/(auth)/login"),
         },
       ]);
     } catch (error) {
-        Alert.alert("Error", error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -227,6 +228,7 @@ export default function RegisterScreen() {
           }}
         />
 
+        {/* Botón de registro */}
         <TouchableOpacity
           onPress={handleRegister}
           style={{
@@ -234,10 +236,39 @@ export default function RegisterScreen() {
             paddingVertical: 14,
             borderRadius: 10,
             alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5,
           }}
         >
           <Text style={{ color: "white", fontWeight: "bold" }}>Registrarme</Text>
         </TouchableOpacity>
+
+        {/* Botón interactivo para volver al login */}
+        <Pressable
+          onPress={() => router.replace("/(auth)/login")}
+          android_ripple={{ color: "#ccc" }}
+          style={({ pressed }) => [
+            {
+              marginTop: 20,
+              alignItems: "center",
+              paddingVertical: 12,
+              borderRadius: 8,
+              backgroundColor: pressed ? "#e6e6e6" : "#f5f5f5",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+              elevation: 3,
+            },
+          ]}
+        >
+          <Text style={{ color: "#053b83", fontWeight: "600" }}>
+            ¿Ya tienes una cuenta? Inicia sesión
+          </Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );

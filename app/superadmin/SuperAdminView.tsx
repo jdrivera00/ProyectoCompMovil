@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Alert, TextInput, StyleSheet } from 'react-native';
 import { db, auth } from '../../config/firebaseConfig';
 import { collection, query, where, getDocs, deleteDoc, doc, addDoc, updateDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, deleteUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser, signOut } from 'firebase/auth';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 interface Admin {
   id: string;
@@ -20,6 +21,8 @@ export default function SuperAdminView() {
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [newRestaurantName, setNewRestaurantName] = useState('');
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+
+  const router = useRouter();
 
   const fetchAdmins = async () => {
     try {
@@ -138,6 +141,15 @@ export default function SuperAdminView() {
     setAdmins(updatedAdmins);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo cerrar sesión.');
+    }
+  };
+
   useEffect(() => {
     fetchAdmins();
   }, []);
@@ -233,6 +245,10 @@ export default function SuperAdminView() {
       <View style={styles.listContainer}>
         {admins.map(renderAdminItem)}
       </View>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -240,19 +256,21 @@ export default function SuperAdminView() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f0f0f0", padding: 20 },
   title: { fontSize: 24, color: "#333", fontWeight: "bold", marginBottom: 20, textAlign: "center" },
-  addAdminButton: { backgroundColor: "#007bff", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 20 },
-  addAdminButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  listContainer: { backgroundColor: "#fff", borderRadius: 8, padding: 15 },
-  listItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  emailText: { fontSize: 16, color: "#333", flex: 1 },
-  restaurantText: { fontSize: 16, color: "#333", flex: 1 },
-  editInput: { flex: 1, backgroundColor: "#f9f9f9", color: "#333", padding: 8, borderRadius: 5, borderColor: "#ddd", borderWidth: 1, marginRight: 10 },
-  actions: { flexDirection: "row" },
-  actionButton: { marginLeft: 15 },
-  addCard: { backgroundColor: "#fff", borderRadius: 8, padding: 15, marginBottom: 20 },
-  input: { backgroundColor: "#f9f9f9", color: "#333", padding: 10, borderRadius: 5, marginBottom: 10, borderColor: "#ddd", borderWidth: 1 },
-  addButton: { backgroundColor: "#28a745", padding: 12, borderRadius: 5, alignItems: "center", marginBottom: 5 },
-  addButtonText: { color: "#fff", fontWeight: "bold" },
-  cancelButton: { backgroundColor: "#dc3545", padding: 12, borderRadius: 5, alignItems: "center" },
-  cancelButtonText: { color: "#fff", fontWeight: "bold" },
+  addCard: { backgroundColor: "#fff", padding: 20, borderRadius: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  input: { height: 40, borderColor: "#ccc", borderWidth: 1, marginBottom: 12, paddingLeft: 10, borderRadius: 4 },
+  addButton: { backgroundColor: "#00BFFF", padding: 10, borderRadius: 4, alignItems: "center" },
+  addButtonText: { color: "#fff", fontSize: 16 },
+  cancelButton: { backgroundColor: "#dc3545", padding: 10, borderRadius: 4, alignItems: "center", marginTop: 10 },
+  cancelButtonText: { color: "#fff", fontSize: 16 },
+  addAdminButton: { backgroundColor: "#28a745", padding: 12, borderRadius: 4, alignItems: "center", marginVertical: 20 },
+  addAdminButtonText: { color: "#fff", fontSize: 16 },
+  listContainer: { marginBottom: 40 },
+  listItem: { backgroundColor: "#fff", padding: 15, marginBottom: 10, borderRadius: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  emailText: { fontSize: 16, color: "#333" },
+  restaurantText: { fontSize: 14, color: "#666", marginTop: 5 },
+  actions: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
+  actionButton: { padding: 5 },
+  editInput: { height: 40, borderColor: "#ccc", borderWidth: 1, marginBottom: 12, paddingLeft: 10, borderRadius: 4 },
+  logoutButton: { backgroundColor: "#FF4136", padding: 12, borderRadius: 4, alignItems: "center", marginTop: 20 },
+  logoutButtonText: { color: "#fff", fontSize: 16 },
 });
