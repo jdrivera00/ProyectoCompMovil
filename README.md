@@ -1,50 +1,105 @@
-# Welcome to your Expo app 👋
+# 📱 App Restaurantes USC
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<img src="./LOGO.PNG" alt="Logo App" width="200"/>
 
-## Get started
+Sistema de gestión de pedidos y reservas para los restaurantes de la **Universidad Santiago de Cali (USC)**. Esta app permite a los estudiantes ordenar y reservar comida con tokens virtuales, mientras los administradores gestionan menús y pedidos de forma eficiente.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Instalación de la App
 
-2. Start the app
+### 📲 Android (Instalación interna)
 
-   ```bash
-    npx expo start
-   ```
+Escanea el siguiente código QR con la cámara de tu dispositivo:
 
-In the output, you'll find options to open the app in a
+<img src="./QR.PNG" alt="QR Code" width="200"/>
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+O haz clic en el siguiente enlace para instalarla directamente en tu Android:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+👉 [https://expo.dev/accounts/jmolina7/projects/AppRestaurantes/builds/80f29d78-22f9-4b7e-8293-d04294dd09e0](https://expo.dev/accounts/jmolina7/projects/AppRestaurantes/builds/80f29d78-22f9-4b7e-8293-d04294dd09e0)
 
-## Get a fresh project
+### ⚠️ Nota para Android 8.0+
+Debes permitir instalaciones de fuentes desconocidas:
+- **Android 8.0+**: Ajustes ➜ Apps ➜ Permitir instalación desde el navegador.
+- **Android 7.1.1 o menor**: Ajustes ➜ Seguridad ➜ Orígenes desconocidos.
 
-When you're ready, run:
+---
 
+## 🎯 Objetivo del Proyecto
+
+Desarrollar una aplicación móvil que permita:
+- A los **restaurantes USC**: gestionar menús, recibir y confirmar pedidos.
+- A los **estudiantes USC**: ordenar comida y reservar horarios, pagando con tokens virtuales.
+
+---
+
+## 📦 Funcionalidades Clave
+
+### 👑 Súper Usuario (Administrador general)
+- ➕ Agrega, edita o elimina restaurantes.
+- 👥 Administra cuentas de restaurantes.
+- 💰 Monitorea transacciones de tokens.
+
+### 🍽️ Usuario Administrador (Restaurantes USC)
+- 📄 Registra y actualiza la info de su restaurante.
+- 🍲 Gestiona su menú (agrega/edita/elimina platillos con imágenes y precios).
+- 📦 Visualiza y confirma pedidos.
+- ⏰ Establece horarios de recogida.
+
+### 🎓 Usuario Normal (Estudiantes)
+- 🔍 Explora restaurantes y menús.
+- 🛒 Ordena comida.
+- 💳 Paga usando tokens (20 tokens iniciales al registrarse).
+- 📅 Reserva horario para recoger pedido.
+- 📜 Consulta historial de pedidos y saldo de tokens.
+
+---
+
+## 🔐 Requerimientos No Funcionales
+
+- **⏱️ Rendimiento**: Procesa órdenes en menos de 3 segundos.
+- **🔒 Seguridad**:
+  - Uso de HTTPS.
+  - Cifrado de credenciales.
+  - Control de acceso por roles.
+- **🧑‍💻 Usabilidad**:
+  - Diseño intuitivo y accesible.
+  - Mensajes claros.
+- **🔧 Mantenibilidad**:
+  - Código modular y documentado.
+  - Actualización de menús en tiempo real.
+
+---
+
+## 🛠️ Detalles Técnicos
+
+| Tecnología            | Versión      |
+| --------------------- | ------------ |
+| **Expo SDK**          | 52.0.42      |
+| **React Native**      | 0.76.8       |
+| **Firebase**          | 11.7.1       |
+| **Firebase Auth & Firestore** | SDK Web oficial |
+| **Router**            | expo-router 4.0.19 |
+| **Lenguaje**          | JavaScript & TypeScript |
+| **Estado del Proyecto** | 🟢 En desarrollo activo |
+
+### 📚 Principales Librerías
+- Navegación: `@react-navigation`
+- Base de datos: `firebase` (Firestore + Auth)
+- Almacenamiento local: `@react-native-async-storage`
+- UI & Animaciones: `expo`, `react-native-reanimated`, `expo-blur`, `expo-haptics`
+
+### 📜 Scripts disponibles
 ```bash
-npm run reset-project
+npm run start       # Inicia el proyecto en modo desarrollo
+npm run android     # Ejecuta en Android
+npm run ios         # Ejecuta en iOS
+npm run web         # Ejecuta en navegador
+npm run test        # Ejecuta tests
+npm run lint        # Corre el linter
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 👫 Autores
+Juan David Rivera
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Jose David Molina
