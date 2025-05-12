@@ -97,6 +97,7 @@ npm run ios         # Ejecuta en iOS
 npm run web         # Ejecuta en navegador
 npm run test        # Ejecuta tests
 npm run lint        # Corre el linter
+eas build -p android --profile preview  # Generar ejecutable 
 ```
 
 ## 👫 Autores
