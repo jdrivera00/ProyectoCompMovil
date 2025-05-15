@@ -15,7 +15,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ✅ Manejar plataforma: web usa getAuth, RN usa initializeAuth con persistencia
 let auth;
 
 if (Platform.OS === "web") {
