@@ -2,21 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Alert, TextInput, StyleSheet } from 'react-native';
 import { db, auth } from '../../config/firebaseConfig';
 import { collection, query, where, getDocs, deleteDoc, doc, addDoc, updateDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, deleteUser, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser as deleteAuthUser, signOut } from 'firebase/auth';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-interface Admin {
-  id: string;
-  correo: string;
-  role: string;
-  restaurantName: string;
-  isEditing?: boolean;
-  newEmail: string;
-}
-
 export default function SuperAdminView() {
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [newRestaurantName, setNewRestaurantName] = useState('');
@@ -24,18 +15,25 @@ export default function SuperAdminView() {
 
   const router = useRouter();
 
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
   const fetchAdmins = async () => {
     try {
       const usuariosRef = collection(db, 'usuarios');
       const q = query(usuariosRef, where('rol', '==', 'admin'));
       const querySnapshot = await getDocs(q);
 
-      const adminsList: Admin[] = querySnapshot.docs.map(doc => ({
+      const adminsList = querySnapshot.docs.map(doc => ({
         id: doc.id,
         correo: doc.data().correo,
         role: doc.data().rol,
-        restaurantName: doc.data().NombreRestaurante || '',
-        newEmail: '',
+        NombreRestaurante: doc.data().NombreRestaurante || '',
+        isEditing: false,
+        newEmail: doc.data().correo || '',
+        newRestaurantName: doc.data().NombreRestaurante || '',
+        uid: doc.data().uid, // Asumiendo que el uid del auth se guarda en el documento
       }));
 
       setAdmins(adminsList);
@@ -67,12 +65,12 @@ export default function SuperAdminView() {
       setIsAddingAdmin(false);
       fetchAdmins();
       Alert.alert('Éxito', 'Administrador agregado correctamente.');
-    } catch (error: any) {
+    } catch (error) {
       Alert.alert('Error al crear el usuario', error.message);
     }
   };
 
-  const handleDeleteAdmin = async (id: string) => {
+  const handleDeleteAdmin = async (adminId) => {
     Alert.alert(
       'Confirmar',
       '¿Estás seguro de que deseas eliminar este administrador? Esta acción no se puede deshacer.',
@@ -83,8 +81,9 @@ export default function SuperAdminView() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const adminRef = doc(db, 'usuarios', id);
+              const adminRef = doc(db, 'usuarios', adminId);
               await deleteDoc(adminRef);
+              // Aquí podrías implementar la lógica para eliminar el usuario de auth si es necesario
               fetchAdmins();
               Alert.alert('Eliminado', 'Administrador eliminado correctamente.');
             } catch (error) {
@@ -96,36 +95,34 @@ export default function SuperAdminView() {
     );
   };
 
-  const handleEditAdmin = (admin: Admin) => {
+  const handleEditAdmin = (admin) => {
     const updatedAdmins = admins.map(a =>
-      a.id === admin.id ? { ...a, isEditing: true, newEmail: a.correo } : a
+      a.id === admin.id ? { ...a, isEditing: true } : a
     );
     setAdmins(updatedAdmins);
   };
 
-  const handleCancelEdit = (admin: Admin) => {
+  const handleCancelEdit = (admin) => {
     const updatedAdmins = admins.map(a =>
-      a.id === admin.id ? { ...a, isEditing: false, newEmail: '', restaurantName: '' } : a
+      a.id === admin.id ? { ...a, isEditing: false } : a
     );
     setAdmins(updatedAdmins);
   };
 
-  const handleSaveEdit = async (admin: Admin) => {
-    if (!admin.newEmail || !admin.newEmail.trim()) {
-      Alert.alert('Advertencia', 'Por favor, ingresa el nuevo correo electrónico.');
+  const handleSaveEdit = async (admin) => {
+    if (!admin.newEmail || !admin.newEmail.trim() || !admin.newRestaurantName || !admin.newRestaurantName.trim()) {
+      Alert.alert('Advertencia', 'Por favor, completa todos los campos para guardar.');
       return;
     }
     try {
       const adminRef = doc(db, 'usuarios', admin.id);
       await updateDoc(adminRef, {
-        email: admin.newEmail,
-        NombreRestaurante: admin.restaurantName,
+        correo: admin.newEmail,
+        NombreRestaurante: admin.newRestaurantName,
       });
 
       const updatedAdmins = admins.map(a =>
-        a.id === admin.id
-          ? { ...a, isEditing: false, correo: admin.newEmail, restaurantName: admin.restaurantName, newEmail: '' }
-          : a
+        a.id === admin.id ? { ...a, isEditing: false, correo: a.newEmail, NombreRestaurante: a.newRestaurantName } : a
       );
       setAdmins(updatedAdmins);
       Alert.alert('Éxito', 'Administrador actualizado correctamente.');
@@ -134,7 +131,7 @@ export default function SuperAdminView() {
     }
   };
 
-  const handleInputChange = (id: string, text: string, field: 'email' | 'restaurantName') => {
+  const handleInputChange = (id, text, field) => {
     const updatedAdmins = admins.map(admin =>
       admin.id === id ? { ...admin, [field]: text } : admin
     );
@@ -150,31 +147,27 @@ export default function SuperAdminView() {
     }
   };
 
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const renderAdminItem = (admin: Admin) => (
+  const renderAdminItem = (admin) => (
     <View key={admin.id} style={styles.listItem}>
       {admin.isEditing ? (
         <>
           <TextInput
             style={styles.editInput}
             value={admin.newEmail}
-            onChangeText={(text) => handleInputChange(admin.id, text, 'email')}
+            onChangeText={(text) => handleInputChange(admin.id, text, 'newEmail')}
             placeholder="Nuevo correo electrónico"
           />
           <TextInput
             style={styles.editInput}
-            value={admin.restaurantName}
-            onChangeText={(text) => handleInputChange(admin.id, text, 'restaurantName')}
+            value={admin.newRestaurantName}
+            onChangeText={(text) => handleInputChange(admin.id, text, 'newRestaurantName')}
             placeholder="Nuevo nombre de restaurante"
           />
         </>
       ) : (
         <>
           <Text style={styles.emailText}>{admin.correo}</Text>
-          <Text style={styles.restaurantText}>{admin.restaurantName}</Text>
+          <Text style={styles.restaurantText}>{admin.NombreRestaurante}</Text>
         </>
       )}
       <View style={styles.actions}>
