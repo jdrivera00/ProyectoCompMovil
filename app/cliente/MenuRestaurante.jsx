@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { db } from '../../config/firebaseConfig';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function MenuRestaurante() {
   const { restauranteId, nombreRestaurante } = useLocalSearchParams();
@@ -13,6 +14,7 @@ export default function MenuRestaurante() {
   const [restauranteImagen, setRestauranteImagen] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cartItems, setCartItems] = useState([]); // Estado local para el carrito
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -47,12 +49,27 @@ export default function MenuRestaurante() {
   }, [restauranteId]);
 
   const handleAddToCart = (item) => {
-    console.log('Añadir al carrito:', item.nombre);
+    const existingItemIndex = cartItems.findIndex((cartItem) => cartItem.id === item.id);
+
+    if (existingItemIndex > -1) {
+      const updatedCartItems = cartItems.map((cartItem, index) =>
+        index === existingItemIndex ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 } : cartItem
+      );
+      setCartItems(updatedCartItems);
+    } else {
+      setCartItems([...cartItems, { ...item, quantity: 1, cartItemId: uuidv4() }]);
+    }
+
+    console.log('Producto añadido/actualizado en el carrito:', item.nombre);
+    console.log('Carrito actual:', cartItems);
   };
 
-  const handleGoToCart = () => {
-    console.log('Ir al carrito');
-  };
+    const handleGoToCart = () => {
+        router.push({
+            pathname: '/cliente/Carrito',
+            params: { cartItems: JSON.stringify(cartItems), restauranteId: restauranteId },
+        });
+    };
 
   if (loading) {
     return <Text>Cargando menú...</Text>;
@@ -63,7 +80,6 @@ export default function MenuRestaurante() {
   }
 
   const renderItem = ({ item }) => {
-    // console.log('Item:', item); // Para inspeccionar los datos de cada item
     return (
       <View style={styles.menuItem}>
         {item.imagen && <Image source={{ uri: item.imagen || null }} style={styles.itemImage} />}
@@ -95,7 +111,7 @@ export default function MenuRestaurante() {
       <TouchableOpacity style={styles.cartButton} onPress={handleGoToCart}>
         <Ionicons name="cart-outline" size={30} color="#fff" />
         <View style={styles.cartBadge}>
-          <Text style={styles.cartBadgeText}>0</Text>
+          <Text style={styles.cartBadgeText}>{cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0)}</Text>
         </View>
       </TouchableOpacity>
     </View>
