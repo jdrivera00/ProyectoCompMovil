@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, Image, StyleSheet } from "react-native";
-import { auth, db } from "../../config/firebaseConfig";
+import { auth, db } from "../../config/firebaseConfig"; // Asegúrate de que la ruta sea correcta
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function VisualizarMenuScreen() {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [logoUrl, setLogoUrl] = useState(null);
 
   useEffect(() => {
-    const cargarMenu = async () => {
+    const cargarDatos = async () => {
       setLoading(true);
       setError(null);
       try {
         const user = auth.currentUser;
         if (user) {
+          // Obtener el logo del restaurante desde la colección 'usuarios'
+          const usuariosRef = collection(db, 'usuarios');
+          const qUsuario = query(usuariosRef, where('uid', '==', user.uid));
+          const querySnapshotUsuario = await getDocs(qUsuario);
+
+          if (!querySnapshotUsuario.empty) {
+            const userData = querySnapshotUsuario.docs[0].data();
+            if (userData && userData.ImagenRestaurante) {
+              setLogoUrl(userData.ImagenRestaurante);
+            }
+          }
+
+          // Obtener los productos del restaurante
           const productosRef = collection(db, 'productos');
-          const q = query(productosRef, where('restauranteId', '==', user.uid));
-          const querySnapshot = await getDocs(q);
+          const qProductos = query(productosRef, where('restauranteId', '==', user.uid));
+          const querySnapshotProductos = await getDocs(qProductos);
           const productos = [];
-          querySnapshot.forEach((doc) => {
+          querySnapshotProductos.forEach((doc) => {
             productos.push({ id: doc.id, ...doc.data() });
           });
           setMenuItems(productos);
@@ -27,14 +41,14 @@ export default function VisualizarMenuScreen() {
           setError("No hay usuario autenticado.");
         }
       } catch (e) {
-        console.error("Error al cargar el menú:", e);
-        setError("Error al cargar el menú.");
+        console.error("Error al cargar datos:", e);
+        setError("Error al cargar los datos.");
       } finally {
         setLoading(false);
       }
     };
 
-    cargarMenu();
+    cargarDatos();
   }, []);
 
   if (loading) {
@@ -58,11 +72,16 @@ export default function VisualizarMenuScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Vista Previa del Menú</Text>
+      {logoUrl && (
+        <Image source={{ uri: logoUrl }} style={styles.bannerImage} resizeMode="cover" />
+      )}
       <FlatList
         data={menuItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        // Si no hay logo, podrías añadir un espacio en la parte superior o un título aquí
+        ListHeaderComponent={() => !logoUrl ? <Text style={styles.title}>Menú</Text> : null}
+        contentContainerStyle={styles.listContentContainer}
       />
     </View>
   );
@@ -71,15 +90,23 @@ export default function VisualizarMenuScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#f4f4f4',
   },
-  title: {
+  bannerImage: {
+    width: '100%', // Ocupa todo el ancho de la pantalla
+    height: 250,   // Altura deseada para el banner. AJUSTA ESTE VALOR según tus necesidades.
+    // resizeMode: 'cover' está en el componente, asegura que la imagen cubra el área.
+    marginBottom: 10, // Espacio entre el banner y la lista de productos
+  },
+  title: { // Estilo para el título si no hay logo
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
     textAlign: 'center',
     color: '#333',
+    marginVertical: 20,
+  },
+  listContentContainer: {
+    paddingHorizontal: 0, // Añade padding horizontal a la lista
   },
   menuItem: {
     flexDirection: 'row',
