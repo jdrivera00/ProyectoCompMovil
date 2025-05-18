@@ -54,7 +54,11 @@ export default function AdminRestauranteView() {
   };
 
   const handleVisualizarMenu = () => {
-    router.push("/admin/VisualizarMenuScreen"); // Navegar a la nueva pantalla de vista previa
+    router.push("/admin/VisualizarMenuScreen");
+  };
+
+  const handleVerPedidos = () => {
+    router.push("/admin/PedidoScreen"); // Navegación a la nueva pantalla
   };
 
   const handleVolverLogin = () => {
@@ -89,6 +93,11 @@ export default function AdminRestauranteView() {
 
         <TouchableOpacity onPress={handleVisualizarMenu} style={styles.button}>
           <Text style={styles.buttonText}>VISUALIZAR MENÚ</Text>
+        </TouchableOpacity>
+
+        {/* Nuevo botón para ver los pedidos */}
+        <TouchableOpacity onPress={handleVerPedidos} style={styles.button}>
+          <Text style={styles.buttonText}>VER PEDIDOS</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleVolverLogin} style={[styles.button, styles.loginButton]}>
