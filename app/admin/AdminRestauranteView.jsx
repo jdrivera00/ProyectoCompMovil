@@ -1,70 +1,96 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router"; // Cambiado a useRouter de expo-router
+import { useRouter } from "expo-router";
+import { auth, db } from '../../config/firebaseConfig'; // Asegúrate de que la ruta sea correcta
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function AdminRestauranteView() {
-  // Usamos el router de Expo
   const router = useRouter();
-  
-  // El nombre del restaurante podría venir de una prop o estado
-  const nombreRestaurante = "D'Café";
+  const [nombreRestaurante, setNombreRestaurante] = useState("Cargando...");
+
+  useEffect(() => {
+    const obtenerNombreRestaurante = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const usuariosRef = collection(db, 'usuarios');
+          const q = query(usuariosRef, where('uid', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach((doc) => {
+              const userData = doc.data();
+              if (userData && userData.NombreRestaurante) {
+                setNombreRestaurante(userData.NombreRestaurante);
+              } else {
+                setNombreRestaurante("Nombre no encontrado en el documento");
+              }
+            });
+          } else {
+            setNombreRestaurante("Usuario no encontrado en la colección");
+          }
+        } else {
+          setNombreRestaurante("No hay usuario autenticado");
+        }
+      } catch (error) {
+        console.error("Error al obtener el nombre del restaurante:", error);
+        setNombreRestaurante("Error al cargar el nombre");
+      }
+    };
+
+    obtenerNombreRestaurante();
+  }, []);
 
   const handleAñadir = () => {
-    // Implementar lógica para añadir
-    console.log("Añadir nuevo elemento");
+    router.push("admin/AgregarProductoScreen");
   };
 
   const handleEditar = () => {
-    // Implementar lógica para editar
-    console.log("Editar elemento");
+    router.push("/admin/EditarProducto")
   };
 
   const handleBorrar = () => {
-    // Implementar lógica para borrar
-    console.log("Borrar elemento");
+    router.push("/admin/BorrarProducto")
   };
 
   const handleVisualizarMenu = () => {
-    // Aquí se podría navegar a la vista de visualización del menú cuando esté implementada
-    console.log("Visualizar menú");
-    // Por ejemplo: router.push("/menu/VisualizarMenu");
+    router.push("/admin/VisualizarMenuScreen"); // Navegar a la nueva pantalla de vista previa
   };
 
   const handleVolverLogin = () => {
-    // Navegar de regreso a la pantalla de login usando Expo Router
     try {
-      // Usar la misma ruta que se usa en el Login para navegar
       router.replace("/(auth)/login");
     } catch (error) {
       console.error("Error navegando a Login:", error);
-      // Alternativa
       router.replace("/");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Restaurantes USC</Text>
-      
-      <Text style={styles.welcomeText}>¡ Bienvenido {nombreRestaurante} !</Text>
-      
+      <Text style={styles.title}>Administración de Restaurante</Text>
+
+      <View style={styles.welcomeContainer}>
+        <Text style={styles.welcomeText}>¡Bienvenido {nombreRestaurante}!</Text>
+      </View>
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={handleAñadir} style={styles.button}>
-          <Text style={styles.buttonText}>AÑADIR</Text>
+          <Text style={styles.buttonText}>AÑADIR PRODUCTO</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity onPress={handleEditar} style={styles.button}>
-          <Text style={styles.buttonText}>EDITAR</Text>
+          <Text style={styles.buttonText}>EDITAR PRODUCTO</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity onPress={handleBorrar} style={styles.button}>
-          <Text style={styles.buttonText}>BORRAR</Text>
+          <Text style={styles.buttonText}>BORRAR PRODUCTO</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleVisualizarMenu} style={styles.button}>
           <Text style={styles.buttonText}>VISUALIZAR MENÚ</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity onPress={handleVolverLogin} style={[styles.button, styles.loginButton]}>
           <Text style={styles.buttonText}>VOLVER AL LOGIN</Text>
         </TouchableOpacity>
@@ -76,39 +102,55 @@ export default function AdminRestauranteView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f4f4f4",
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 40,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 30,
+    color: "#333",
+  },
+  welcomeContainer: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 40,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   welcomeText: {
-    fontSize: 18,
-    textAlign: "left",
-    marginBottom: 40,
-    marginTop: 20,
+    fontSize: 20,
+    textAlign: "center",
+    color: "#555",
   },
   buttonContainer: {
-    gap: 16, // Espacio entre botones
+    gap: 12,
   },
   button: {
-    backgroundColor: "#3f51b5", // Color azul similar al de la imagen
-    padding: 14,
-    borderRadius: 4,
+    backgroundColor: "#007bff",
+    padding: 16,
+    borderRadius: 8,
     alignItems: "center",
     width: "100%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 1,
   },
   loginButton: {
-    backgroundColor: "#FF0000", // Color rojo para el botón de volver al login
-    marginTop: 10,
+    backgroundColor: "#dc3545",
+    marginTop: 16,
   },
   buttonText: {
     color: "#ffffff",
     fontWeight: "bold",
-    fontSize: 16,
-  }
+    fontSize: 18,
+  },
 });
