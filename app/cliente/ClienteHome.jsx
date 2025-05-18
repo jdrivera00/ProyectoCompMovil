@@ -7,6 +7,8 @@ import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firesto
 import { db } from '../../config/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 
+const PLACEHOLDER_IMAGE = ""; // Reemplaza con la URL de tu imagen de marcador de posición
+
 export default function ClienteHome() {
   const router = useRouter();
   const [nombreUsuario, setNombreUsuario] = useState('');
@@ -46,8 +48,9 @@ export default function ClienteHome() {
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({
         id: doc.id,
+        UID: doc.data().uid, // Asegúrate de que este campo exista y contenga el UID del admin
         nombre: doc.data().NombreRestaurante || 'Nombre no disponible',
-        imagen: doc.data().imagen || null,
+        imagen: doc.data().ImagenRestaurante || PLACEHOLDER_IMAGE, // Usamos ImagenRestaurante
         ...doc.data(),
       }));
       setRestaurantes(data);
@@ -61,21 +64,31 @@ export default function ClienteHome() {
     router.push('/cliente/PerfilScreen');
   };
 
+  const handleRestaurantPress = (restauranteId, nombreRestaurante) => {
+    router.push({
+      pathname: '/cliente/MenuRestaurante',
+      params: { restauranteId: restauranteId, nombreRestaurante: nombreRestaurante },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
         <Ionicons name="menu-outline" size={30} color="#000" />
       </TouchableOpacity>
       <Text style={styles.title}>Restaurantes USC</Text>
-      <Text style={styles.welcomeText}>Bienvenido {nombreUsuario}</Text>
+      <Text style={styles.welcomeText}>¿Qué te gustaría pedir hoy, {nombreUsuario}?</Text>
       <ScrollView style={styles.restaurantsContainer}>
         {restaurantes.map((restaurante) => (
-          <TouchableOpacity key={restaurante.id} style={styles.restaurantItem}>
-            {restaurante.imagen ? (
-              <Image source={{ uri: restaurante.imagen }} style={styles.restaurantImage} />
-            ) : (
-              <View style={styles.restaurantImagePlaceholder} />
-            )}
+          <TouchableOpacity
+            key={restaurante.id}
+            style={styles.restaurantItem}
+            onPress={() => handleRestaurantPress(restaurante.UID, restaurante.nombre)}
+          >
+            <Image
+              source={{ uri: restaurante.imagen }}
+              style={styles.restaurantImage}
+            />
             <Text style={styles.restaurantName}>{restaurante.nombre}</Text>
           </TouchableOpacity>
         ))}
@@ -124,13 +137,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginRight: 16,
-  },
-  restaurantImagePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ccc',
     marginRight: 16,
   },
   restaurantName: {
