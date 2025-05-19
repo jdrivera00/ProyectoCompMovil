@@ -2,32 +2,39 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { db, auth } from '../../config/firebaseConfig'; // Importa db y auth
-import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../../config/firebaseConfig';
+import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Carrito() {
   const { cartItems: cartItemsString, restauranteId } = useLocalSearchParams();
   const router = useRouter();
   const [clienteUid, setClienteUid] = useState(null);
   const [clienteNombre, setClienteNombre] = useState(null);
+  const [clienteTokens, setClienteTokens] = useState(0);
 
-  // Convertir la cadena JSON de vuelta a un array de objetos
   const cartItems = cartItemsString ? JSON.parse(cartItemsString) : [];
 
   const [diaEntrega, setDiaEntrega] = useState('');
   const [horaEntrega, setHoraEntrega] = useState('');
 
+  const calcularTotal = () => {
+    return cartItems.reduce((total, item) => total + (item.precio || 0) * (item.quantity || 1), 0);
+  };
+
+  const totalPedido = calcularTotal();
+
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setClienteUid(user.uid);
-        // Obtener el nombre del cliente desde la colección 'usuarios'
         const clienteDocRef = doc(db, 'usuarios', user.uid);
         const clienteDocSnap = await getDoc(clienteDocRef);
-        if (clienteDocSnap.exists() && clienteDocSnap.data().nombre) {
-          setClienteNombre(clienteDocSnap.data().nombre);
+        if (clienteDocSnap.exists()) {
+          const clienteData = clienteDocSnap.data();
+          setClienteNombre(clienteData.nombre);
+          setClienteTokens(clienteData.tokens || 0);
         } else {
-          console.log('No se encontró el nombre del cliente en la base de datos.');
+          console.log('No se encontró la información del cliente en la base de datos.');
         }
       } else {
         console.log('Usuario no autenticado');
@@ -37,10 +44,6 @@ export default function Carrito() {
 
     return () => unsubscribeAuth();
   }, []);
-
-  const calcularTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.precio || 0) * (item.quantity || 1), 0);
-  };
 
   const renderItem = ({ item }) => (
     <View style={styles.itemCarrito}>
@@ -65,11 +68,17 @@ export default function Carrito() {
       return;
     }
 
+    if (clienteTokens < totalPedido) {
+      Alert.alert('Saldo insuficiente', `No tienes suficientes tokens para realizar este pedido. Tu saldo actual es de ${clienteTokens} Tokens y el total del pedido es de ${totalPedido} Tokens.`);
+      return;
+    }
+
     try {
+      // 1. Crear el pedido en la colección 'pedidos'
       const pedidosRef = collection(db, 'pedidos');
       await addDoc(pedidosRef, {
         clienteUid: clienteUid,
-        clienteNombre: clienteNombre, // Agregamos el nombre del cliente
+        clienteNombre: clienteNombre,
         restauranteUid: restauranteId,
         diaEntrega: diaEntrega,
         horaEntrega: horaEntrega,
@@ -79,15 +88,21 @@ export default function Carrito() {
           precioUnitario: item.precio,
           precioTotal: item.precio * item.quantity,
         })),
-        costoTotal: calcularTotal(),
+        costoTotal: totalPedido,
         estado: 'Pendiente',
-        fechaPedido: new Date(),
+        fechaPedido: serverTimestamp(),
       });
 
-      Alert.alert('Pedido realizado', 'Tu pedido ha sido registrado exitosamente.');
-      router.push('/(cliente)/ClienteHome');
+      // 2. Actualizar los tokens del cliente
+      const nuevoSaldoCliente = clienteTokens - totalPedido;
+      const clienteDocRef = doc(db, 'usuarios', clienteUid);
+      await updateDoc(clienteDocRef, { tokens: nuevoSaldoCliente });
+      console.log(`Se descontaron ${totalPedido} tokens al cliente ${clienteUid}`);
+
+      Alert.alert('Pedido realizado', `Tu pedido ha sido registrado exitosamente. Se han descontado ${totalPedido} Tokens de tu saldo.`);
+      router.push('/cliente/ClienteHome'); // Redirige a ClienteHome
     } catch (error) {
-      console.error('Error al crear el pedido:', error);
+      console.error('Error al crear el pedido o actualizar los tokens del cliente:', error);
       Alert.alert('Error', 'Hubo un problema al registrar tu pedido. Por favor, intenta nuevamente.');
     }
   };
@@ -127,7 +142,7 @@ export default function Carrito() {
         <Text>El carrito está vacío.</Text>
       )}
 
-      <Text style={styles.costoTotal}>Costo Total: {calcularTotal()} Tokens</Text>
+      <Text style={styles.costoTotal}>Costo Total: {totalPedido} Tokens</Text>
 
       <TouchableOpacity style={styles.botonFinalizar} onPress={handleFinalizarPedido}>
         <Text style={styles.textoBotonFinalizar}>Finalizar Pedido</Text>

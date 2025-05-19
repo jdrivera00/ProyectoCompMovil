@@ -57,6 +57,7 @@ export default function SuperAdminView() {
         correo: newAdminEmail,
         NombreRestaurante: newRestaurantName,
         rol: 'admin',
+        tokens: 0,
       });
 
       setNewAdminEmail('');

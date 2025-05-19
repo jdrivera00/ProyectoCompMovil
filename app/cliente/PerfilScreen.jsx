@@ -1,4 +1,3 @@
-// app/(cliente)/PerfilScreen.jsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,30 +10,34 @@ export default function PerfilScreen() {
   const router = useRouter();
   const [nombreUsuario, setNombreUsuario] = useState('');
   const [tokens, setTokens] = useState(0);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    fetchUserDataAndTokens();
-  }, []);
-
-  const fetchUserDataAndTokens = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
-    if (user && user.uid) {
+    if (user) {
+      setUserId(user.uid);
+      fetchUserDataAndTokens(user.uid);
+    }
+  }, []);
+
+  const fetchUserDataAndTokens = async (uid) => {
+    if (uid) {
       try {
-        const userDocRef = doc(db, 'usuarios', user.uid);
+        const userDocRef = doc(db, 'usuarios', uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           setNombreUsuario(userData.nombre || 'Usuario');
           setTokens(userData.tokens || 0);
         } else {
-          console.log("No se encontró el documento del usuario con UID:", user.uid, "en 'usuarios'");
-          setNombreUsuario(user.email.split('@')[0]);
+          console.log("No se encontró el documento del usuario con UID:", uid, "en 'usuarios'");
+          setNombreUsuario(user?.email.split('@')[0] || 'Usuario');
           setTokens(0);
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
-        setNombreUsuario(user.email.split('@')[0]);
+        setNombreUsuario(user?.email.split('@')[0] || 'Usuario');
         setTokens(0);
       }
     } else {
@@ -54,20 +57,43 @@ export default function PerfilScreen() {
     }
   };
 
+  const handleRecargarTokensPress = () => {
+    if (userId) {
+      router.push({
+        pathname: '/cliente/RecargarTokensScreen',
+        params: { clienteUid: userId },
+      });
+    } else {
+      Alert.alert('Error', 'No se pudo obtener la ID del usuario.');
+    }
+  };
+
+  const handleMisPedidosPress = () => {
+    if (userId) {
+      router.push({
+        pathname: '/cliente/PedidosCliente',
+        params: { clienteUid: userId },
+      });
+    } else {
+      Alert.alert('Error', 'No se pudo obtener la ID del usuario para ver los pedidos.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.welcomeText}>Bienvenido</Text>
       <Text style={styles.userName}>{nombreUsuario}</Text>
 
-      <TouchableOpacity style={styles.item}>
+      <TouchableOpacity style={styles.item} onPress={handleRecargarTokensPress}>
         <Ionicons name="cash-outline" size={24} color="black" style={styles.icon} />
         <Text style={styles.itemText}>Saldo: {tokens} Tokens</Text>
         <Ionicons name="chevron-forward-outline" size={20} color="gray" style={styles.chevron} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item} onPress={() => router.push('/cliente/NotificacionesScreen')}>
-        <Ionicons name="notifications-outline" size={24} color="black" style={styles.icon} />
-        <Text style={styles.itemText}>Notificaciones</Text>
+      <TouchableOpacity style={styles.item} onPress={handleMisPedidosPress}>
+        <Ionicons name="list-outline" size={24} color="black" style={styles.icon} />
+        <Text style={styles.itemText}>Mis Pedidos</Text>
+        <Ionicons name="chevron-forward-outline" size={20} color="gray" style={styles.chevron} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.item} onPress={() => router.push('/cliente/EditarPerfilScreen')}>
@@ -111,7 +137,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 18,
-    flex: 1, // Para que el texto ocupe el espacio disponible
+    flex: 1,
   },
   chevron: {
     marginLeft: 10,

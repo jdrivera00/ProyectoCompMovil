@@ -65,6 +65,7 @@ export default function MenuRestaurante() {
   };
 
     const handleGoToCart = () => {
+        console.log("Restaurante ID que se pasa al carrito:", restauranteId);
         router.push({
             pathname: '/cliente/Carrito',
             params: { cartItems: JSON.stringify(cartItems), restauranteId: restauranteId },
