@@ -12,7 +12,7 @@ Sistema de gestión de pedidos y reservas para los restaurantes de la **Universi
  
 Escanea el siguiente código QR con la cámara de tu dispositivo:
 
-<img src="./QR.PNG" alt="QR Code" width="200"/>
+<img src="./QR.jpg" alt="QR Code" width="200"/>
 
 O haz clic en el siguiente enlace para instalarla directamente en tu Android:
 
