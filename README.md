@@ -9,7 +9,7 @@ Sistema de gestión de pedidos y reservas para los restaurantes de la **Universi
 ## 🚀 Instalación de la App
 
 ### 📲 Android (Instalación interna)
-
+ 
 Escanea el siguiente código QR con la cámara de tu dispositivo:
 
 <img src="./QR.PNG" alt="QR Code" width="200"/>
