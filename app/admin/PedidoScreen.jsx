@@ -1,8 +1,7 @@
-// app/admin/PedidoScreen.jsx
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { db } from "../../config/firebaseConfig";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db, auth } from "../../config/firebaseConfig";
 import { useRouter } from 'expo-router';
 
 export default function PedidoScreen() {
@@ -12,45 +11,59 @@ export default function PedidoScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchPedidos = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const pedidosRef = collection(db, "pedidos");
-        const q = query(pedidosRef, orderBy("fechaPedido", "desc")); // Ordenar por fechaPedido
+    const user = auth.currentUser;
+    if (!user) {
+      setError("No hay usuario autenticado");
+      setLoading(false);
+      return;
+    }
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const pedidosData = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setPedidos(pedidosData);
-          setLoading(false);
-        }, (err) => {
-          console.error("Error al obtener los pedidos:", err);
-          setError("Error al cargar los pedidos.");
-          setLoading(false);
-        });
+    setLoading(true);
+    setError(null);
 
-        return () => unsubscribe();
-      } catch (e) {
-        console.error("Error al configurar el listener:", e);
-        setError("Error al cargar los pedidos.");
-        setLoading(false);
-      }
-    };
+    const pedidosRef = collection(db, "pedidos");
+    const q = query(pedidosRef, where("restauranteUid", "==", user.uid));
 
-    fetchPedidos();
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const pedidosData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Ordenar en JS por fechaPedido descendente
+      pedidosData.sort((a, b) => {
+        const fechaA = a.fechaPedido?.toDate ? a.fechaPedido.toDate() : new Date(a.fechaPedido);
+        const fechaB = b.fechaPedido?.toDate ? b.fechaPedido.toDate() : new Date(b.fechaPedido);
+        return fechaB - fechaA; // descendente
+      });
+
+      setPedidos(pedidosData);
+      setLoading(false);
+    }, (err) => {
+      console.error("Error al obtener los pedidos:", err);
+      setError("Error al cargar los pedidos.");
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const renderPedidoItem = ({ item }) => (
-    <View style={styles.pedidoItem}>
-      <Text style={styles.pedidoId}>Pedido ID: {item.id}</Text>
-      <Text>Cliente: {item.clienteNombre}</Text>
-      <Text>Fecha: {item.fechaPedido?.toDate ? item.fechaPedido.toDate().toLocaleDateString() : new Date(item.fechaPedido).toLocaleDateString()}</Text>
-      <Text>Total: {item.costoTotal} Tokens</Text>
-      {/* Aquí puedes mostrar más detalles del pedido */}
-    </View>
+    <TouchableOpacity
+      onPress={() => {
+        router.push({
+          pathname: '/admin/DetallePedidoScreen',
+          params: { pedidoId: item.id },
+        });
+      }}
+    >
+      <View style={styles.pedidoItem}>
+        <Text style={styles.pedidoId}>Pedido ID: {item.id}</Text>
+        <Text>Cliente: {item.clienteNombre}</Text>
+        <Text>Fecha: {item.fechaPedido?.toDate ? item.fechaPedido.toDate().toLocaleDateString() : new Date(item.fechaPedido).toLocaleDateString()}</Text>
+        <Text>Total: {item.costoTotal} Tokens</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   const handleRegresar = () => {
@@ -144,7 +157,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   emptyTitle: {
     fontSize: 28,
